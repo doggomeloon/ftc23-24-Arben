@@ -1,26 +1,8 @@
-/*
-Copyright 2022 FIRST Tech Challenge Team 4998
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
-associated documentation files (the "Software"), to deal in the Software without restriction,
-including without limitation the rights to use, copy, modify, merge, publish, distribute,
-sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial
-portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
-NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.Blinker;
 import com.qualcomm.robotcore.hardware.Gyroscope;
@@ -33,18 +15,23 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+//import org.firstinspires.ftc.robotcore.util.ElapsedTime;
 
 @Autonomous
-@Disabled
+
 public class ArbenAutoBlueRight extends LinearOpMode {
     
+    ColorSensor sensorColor;
+    
     DcMotorEx m1, m2, m3, m4;
-    BNO055IMU imu;
     
     private Servo rotate;
-    private Servo grabber;
+    private Servo grabberLeft, grabberRight;
+    //private elapsedTime runtime = new ElapsedTime();
     
-    private DistanceSensor sensorDistance;
+    private DistanceSensor DSFL, DSL, DSR, DSFR;
+    
+    private boolean hasSeenLine = false;
 
     private void drive(double py, double px, double pa) {
                 
@@ -75,19 +62,30 @@ public class ArbenAutoBlueRight extends LinearOpMode {
         m4.setPower(p4);
     }
     
+    private void stopDrive(){
+        drive(0,0,0);
+        sleep(400);
+    }
+    
 
     @Override
     public void runOpMode() {
         
-        sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_distance");
+        DSFL = hardwareMap.get(DistanceSensor.class, "distanceSensorFrontLeft");
+        DSL = hardwareMap.get(DistanceSensor.class, "distanceSensorLeft");
+        DSR = hardwareMap.get(DistanceSensor.class, "distanceSensorRight");
+        DSFR = hardwareMap.get(DistanceSensor.class, "distanceSensorFrontRight");
         
+        sensorColor = hardwareMap.get(ColorSensor.class, "Color");
+        
+        //Grabber motors
         rotate = hardwareMap.get(Servo.class, "rotate");
-        grabber = hardwareMap.get(Servo.class, "grabber");
+        grabberLeft = hardwareMap.get(Servo.class, "grabberLeft");
+        grabberRight = hardwareMap.get(Servo.class, "grabberRight");
     
-        grabber.setPosition(1);
-        rotate.setPosition(0.9);
+        grabberLeft.setPosition(0.74);
+        grabberRight.setPosition(0.14);
         
-        boolean hasSeen = false;
         
         m1 = hardwareMap.get(DcMotorEx.class, "frontl");
         m2 = hardwareMap.get(DcMotorEx.class, "backl");
@@ -109,47 +107,68 @@ public class ArbenAutoBlueRight extends LinearOpMode {
         m3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         m4.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        m1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        m2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        m3.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        m4.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
         // Wait for the game to start (driver presses PLAY)
-        waitForStart();
-
-        //DRIVING MEASUREMENTS
-        /*
-        * One square to another is ~700ms
-        * Rotating 90 degrees is ~800ms
-        * 
-        */
-        drive(0,0.3,0);
-        sleep(600);
         
-        drive(0,0,0);
-        sleep(500);
-        if((sensorDistance.getDistance(DistanceUnit.INCH)/12) <= 3){ //Pos 1 check
-            
-            telemetry.addData("Position Found", 1);
+        
+        
+        
+        waitForStart();
+        
+        rotate.setPosition(0.67);
+
+        drive(0.2,0,0);
+        while(hasSeenLine == false){
+            int blue = sensorColor.blue();
+
+            telemetry.addData("Blue  ", blue);
             telemetry.update();
+            if(blue > 235){
+                stopDrive();
+                hasSeenLine = true;
+            }
+        }
+        
+        if(DSL.getDistance(DistanceUnit.CM) <= 15){ //Checks if on left
+            drive(-0.1,0,0);
+            sleep(1300);
+            stopDrive();
             
-            rotate.setPosition(0.65); //Move rotator to the ground
-            sleep(350);
-            
-            drive(0,-0.5,0); //Align with object (Line)
-            sleep(200);
-            
-            drive(0.5,0,0); //Drive up to the line
-            sleep(415);
-            
-            drive(0,0,-0.5);
-            sleep(20);
-            
-            drive(0,0,0);
-            sleep(400);
-            grabber.setPosition(0.6); //Release hand
+            drive(0,0,0.2);
             sleep(1000);
-            rotate.setPosition(1);
+            stopDrive();
+            grabberLeft.setPosition(1);
+            
+        } else if(DSR.getDistance(DistanceUnit.CM) <= 15){// Checks if on right
+            drive(-0.1,0,0);
+            sleep(1300);
+            stopDrive();
+            
+            drive(0,0,-0.2);
             sleep(1000);
+            stopDrive();
+            grabberLeft.setPosition(1);
+            
+        } else { //If neither, must be in center
+            drive(-0.1,0,0);
+            sleep(1000);
+            stopDrive();
+            grabberLeft.setPosition(1);
             
         }
+        
+        sleep(3000);
+        drive(-0.1,0,0);
+        sleep(500);
+        stopDrive();
+        
+        
     }
 }

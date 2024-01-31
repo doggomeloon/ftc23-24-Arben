@@ -63,10 +63,10 @@ public class Arben extends LinearOpMode {
         armRotatorLeft.setDirection(DcMotor.Direction.REVERSE);
         
         //Motor direction, flip to reverse direction of robot (may need to reorder motors)
-        //m1.setDirection(DcMotor.Direction.REVERSE);
+        m1.setDirection(DcMotor.Direction.REVERSE);
         m2.setDirection(DcMotor.Direction.REVERSE);
         //m3.setDirection(DcMotor.Direction.REVERSE);
-        m4.setDirection(DcMotor.Direction.REVERSE);
+        //m4.setDirection(DcMotor.Direction.REVERSE);
         
         //not going to lie i have no idea what this stuff is 
         // m1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -118,10 +118,10 @@ public class Arben extends LinearOpMode {
             //p1 correlates to m1
             //p2 correlates to m2
             // etc.
-            double p1 = -px + py + pa;
-            double p2 = px + py - pa;
-            double p3 = px + py + pa;
-            double p4 = -px + py - pa;
+            double p1 = px + py + pa; //fl
+            double p2 = -px + py + pa; //bl
+            double p3 = -px + py - pa; //fr
+            double p4 = px + py - pa; //br
             double max = Math.max(1.0, Math.abs(p1));
             max = Math.max(max, Math.abs(p2));
             max = Math.max(max, Math.abs(p3));
