@@ -44,10 +44,10 @@ public class ArbenAutoBlueRight extends LinearOpMode {
         //pa is the power of the body rotation
         
         if (Math.abs(pa) < 0.05) pa = 0;
-        double p1 = -px + py + pa;
-        double p2 = px + py - pa;
-        double p3 = px + py + pa;
-        double p4 = -px + py - pa;
+        double p1 = px + py + pa; //fl
+        double p2 = -px + py + pa; //bl
+        double p3 = -px + py - pa; //fr
+        double p4 = px + py - pa; //br
         double max = Math.max(1.0, Math.abs(p1));
         max = Math.max(max, Math.abs(p2));
         max = Math.max(max, Math.abs(p3));
@@ -92,10 +92,10 @@ public class ArbenAutoBlueRight extends LinearOpMode {
         m3 = hardwareMap.get(DcMotorEx.class, "frontr");
         m4 = hardwareMap.get(DcMotorEx.class, "backr");
         
-        //m1.setDirection(DcMotor.Direction.REVERSE);
+        m1.setDirection(DcMotor.Direction.REVERSE);
         m2.setDirection(DcMotor.Direction.REVERSE);
         //m3.setDirection(DcMotor.Direction.REVERSE);
-        m4.setDirection(DcMotor.Direction.REVERSE);
+        //m4.setDirection(DcMotor.Direction.REVERSE);
         
         m1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         m2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -124,7 +124,7 @@ public class ArbenAutoBlueRight extends LinearOpMode {
         
         rotate.setPosition(0.67);
 
-        drive(0.2,0,0);
+        drive(0.35,0,0);
         while(hasSeenLine == false){
             int blue = sensorColor.blue();
 
@@ -136,38 +136,53 @@ public class ArbenAutoBlueRight extends LinearOpMode {
             }
         }
         
+        drive(-0.3,0,0);
+        sleep(400);
+        stopDrive();
+        
         if(DSL.getDistance(DistanceUnit.CM) <= 15){ //Checks if on left
-            drive(-0.1,0,0);
-            sleep(1300);
+            drive(-0.5,0,0);
+            sleep(750);
             stopDrive();
             
-            drive(0,0,0.2);
-            sleep(1000);
+            drive(0,0,-0.5);
+            sleep(1350);
             stopDrive();
             grabberLeft.setPosition(1);
+            sleep(500);
+            rotate.setPosition(1);
             
         } else if(DSR.getDistance(DistanceUnit.CM) <= 15){// Checks if on right
-            drive(-0.1,0,0);
-            sleep(1300);
+            drive(-0.5,0,0);
+            sleep(750);
             stopDrive();
             
-            drive(0,0,-0.2);
-            sleep(1000);
+            drive(0,0,0.5);
+            sleep(1600);
+            stopDrive();
+            drive(0.2,0,0);
+            sleep(600);
             stopDrive();
             grabberLeft.setPosition(1);
+            sleep(500);
+            rotate.setPosition(1);
             
         } else { //If neither, must be in center
-            drive(-0.1,0,0);
-            sleep(1000);
+            drive(-0.7,0,0);
+            sleep(400);
             stopDrive();
             grabberLeft.setPosition(1);
+            sleep(500);
+            rotate.setPosition(1);
             
         }
         
-        sleep(3000);
-        drive(-0.1,0,0);
-        sleep(500);
+        sleep(300);
+        drive(-0.5,0,0);
+        sleep(670);
         stopDrive();
+        rotate.setPosition(0.67);
+        sleep(500);
         
         
     }

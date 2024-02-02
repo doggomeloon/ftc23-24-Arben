@@ -130,7 +130,7 @@ public class ArbenAutoBlueLeft extends LinearOpMode {
 
             telemetry.addData("Blue  ", blue);
             telemetry.update();
-            if(blue > 300){
+            if(blue > 235){
                 stopDrive();
                 hasSeenLine = true;
             }
