@@ -1,6 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import java.text.SimpleDateFormat;
+import java.text.DateFormat;
+import java.util.Date;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -24,8 +30,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-@TeleOp(name="Arben")
-public class Arben extends LinearOpMode {
+@TeleOp(name="ArbenWriter")
+public class ArbenWriter extends LinearOpMode {
 
     private Servo rotate;
     private Servo grabberLeft;
@@ -39,12 +45,35 @@ public class Arben extends LinearOpMode {
     private boolean leftClawMotor = false;
     private boolean rightClawMotor = false;
     
+    private boolean rotateIsRotated = true;
+    
     private long lastPressed = 0;
+    BufferedWriter out = null;
+    
+    DateFormat dateFormat = new SimpleDateFormat("MM/dd 'at' HH:mm:ss");
+    Date date = new Date();
+    
+    public void writeInstruction(String text){
+        try {
+            out.write(text);
+            out.write("\n");
+            out.flush();
+        } catch (IOException r){
+            r.printStackTrace();
+        }
+    }
+
 
     @Override
     public void runOpMode(){
-        
-        
+        try {
+            FileWriter fstream = new FileWriter("sdcard/FIRST/java/src/org/firstinspires/ftc/teamcode/Instructions.txt", true);
+            out = new BufferedWriter(fstream);
+            out.write("\n----------NEW INSTRUCTIONS " + dateFormat.format(date) + "----------\n");
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+
          //Grabber motors
         rotate = hardwareMap.get(Servo.class, "rotate");
         grabberLeft = hardwareMap.get(Servo.class, "grabberLeft");
@@ -181,11 +210,15 @@ public class Arben extends LinearOpMode {
                 }
             }
             
-            if(gamepad2.right_bumper){ //Down
+            if(gamepad2.right_bumper && rotateIsRotated){ //Down
+                rotateIsRotated = false;
                 rotate.setPosition(0.67);
+                writeInstruction("rd");
             }
-            if(gamepad2.left_bumper){ //Up
+            if(gamepad2.left_bumper && rotateIsRotated == false){ //Up
+                rotateIsRotated = true;
                 rotate.setPosition(1);
+                writeInstruction("ru");
             }
             
             double ap = gamepad2.right_stick_y;
@@ -214,5 +247,11 @@ public class Arben extends LinearOpMode {
         
         armRotatorLeft.setPower(0);
         armRotatorRight.setPower(0);
+        
+        try {
+            out.close();
+        } catch (IOException u){
+            u.printStackTrace();
+        }
     }
 }
